@@ -1,627 +1,726 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Font Awesome -->
-  <link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" />
-
-  <!-- Bootswatch Darkly (Bootstrap 4) -->
-  <link href="https://stackpath.bootstrapcdn.com/bootswatch/4.5.2/darkly/bootstrap.min.css" rel="stylesheet" />
-
-  <!-- Google Fonts -->
-  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
-
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet" />
   <title>JS Todo List</title>
 
   <style>
-    /* ── Custom Variables ─────────────────────────────── */
-    :root {
-      --bg:          #1a1d23;
-      --surface:     #22262f;
-      --surface2:    #292e38;
-      --border:      #333848;
-      --accent:      #4fd1c5;
-      --accent-dim:  rgba(79, 209, 197, 0.12);
-      --danger:      #fc8181;
-      --text:        #e2e8f0;
-      --text-muted:  #718096;
-      --radius:      10px;
-      --mono:        'Space Mono', monospace;
-      --sans:        'DM Sans', sans-serif;
-    }
+  /* ════════════════════════════════════════════════════
+     TEMA OSCURO (por defecto)
+  ════════════════════════════════════════════════════ */
+  :root,
+  [data-theme="dark"] {
+    --bg:           #13151a;
+    --surface:      #1e2128;
+    --surface2:     #252930;
+    --border:       #2e3340;
+    --text:         #e2e8f0;
+    --text-muted:   #64748b;
+    --accent:       #4fd1c5;
+    --accent-dim:   rgba(79,209,197,.12);
+    --accent-btn:   #4fd1c5;
+    --accent-btn-t: #13151a;
+    --nav-bg:       #1e2128;
+    --card-shadow:  0 2px 16px rgba(0,0,0,.4);
+    --modal-overlay:rgba(0,0,0,.65);
 
-    /* ── Base ─────────────────────────────────────────── */
-    *, *::before, *::after { box-sizing: border-box; }
+    /* Prioridades */
+    --p-urgent:      #fc8181;
+    --p-urgent-bg:   rgba(252,129,129,.13);
+    --p-necessary:   #f6ad55;
+    --p-necessary-bg:rgba(246,173,85,.13);
+    --p-low:         #b794f4;
+    --p-low-bg:      rgba(183,148,244,.13);
+  }
 
-    body {
-      background-color: var(--bg);
-      color: var(--text);
-      font-family: var(--sans);
-      min-height: 100vh;
-    }
+  /* ════════════════════════════════════════════════════
+     TEMA CÁLIDO
+  ════════════════════════════════════════════════════ */
+  [data-theme="warm"] {
+    --bg:           #1f1410;
+    --surface:      #2b1d17;
+    --surface2:     #32231c;
+    --border:       #4a2e24;
+    --text:         #f0e6df;
+    --text-muted:   #9a7060;
+    --accent:       #e07b54;
+    --accent-dim:   rgba(224,123,84,.14);
+    --accent-btn:   #f5f0ee;
+    --accent-btn-t: #2b1d17;
+    --nav-bg:       #251812;
+    --card-shadow:  0 2px 20px rgba(0,0,0,.5);
+    --modal-overlay:rgba(10,5,3,.7);
 
-    /* ── Navbar ───────────────────────────────────────── */
-    .navbar {
-      background: var(--surface) !important;
-      border-bottom: 1px solid var(--border);
-      padding: 0.75rem 1.5rem;
-    }
+    /* Prioridades en tono cálido */
+    --p-urgent:      #ff6b6b;
+    --p-urgent-bg:   rgba(255,107,107,.14);
+    --p-necessary:   #ffb347;
+    --p-necessary-bg:rgba(255,179,71,.14);
+    --p-low:         #d48bbf;
+    --p-low-bg:      rgba(212,139,191,.14);
+  }
 
-    .navbar-brand {
-      font-family: var(--mono);
-      font-weight: 700;
-      font-size: 1.1rem;
-      color: var(--accent) !important;
-      letter-spacing: 0.05em;
-    }
+  /* ════════════════════════════════════════════════════
+     RESET / BASE
+  ════════════════════════════════════════════════════ */
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-    .navbar-brand::before {
-      content: '✓ ';
-      opacity: 0.7;
-    }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+    font-size: 15px;
+    transition: background .3s, color .3s;
+  }
 
-    /* Filters in navbar */
-    #filters {
-      gap: 0.5rem;
-      align-items: center;
-    }
+  /* ════════════════════════════════════════════════════
+     NAVBAR
+  ════════════════════════════════════════════════════ */
+  .navbar {
+    background: var(--nav-bg);
+    border-bottom: 1px solid var(--border);
+    padding: .75rem 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: wrap;
+    transition: background .3s, border-color .3s;
+  }
 
-    .filter-label {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--accent);
-      margin-right: 0.25rem;
-    }
+  .navbar-brand {
+    font-family: 'Space Mono', monospace;
+    font-weight: 700;
+    font-size: 1rem;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
 
-    .filter-group {
-      display: flex;
-      align-items: center;
-      gap: 0.15rem;
-      background: var(--bg);
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      padding: 2px;
-      margin-right: 0.5rem;
-    }
+  .navbar-brand::before { content: '✓ '; opacity: .7; }
 
-    .filter-radio {
-      display: none;
-    }
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: .75rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+  }
 
-    .filter-radio + label {
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      cursor: pointer;
-      transition: all 0.15s;
-      margin: 0;
-      user-select: none;
-    }
+  /* Theme toggle */
+  #theme-toggle {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    background: var(--accent-dim);
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    border-radius: 6px;
+    padding: 5px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: .72rem;
+    letter-spacing: .04em;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    white-space: nowrap;
+  }
 
-    .filter-radio:checked + label {
-      background: var(--accent);
-      color: #1a1d23;
-      font-weight: 500;
-    }
+  #theme-toggle:hover {
+    background: var(--accent);
+    color: var(--accent-btn-t);
+  }
 
-    .search-input {
-      background: var(--bg) !important;
-      border: 1px solid var(--border) !important;
-      color: var(--text) !important;
-      border-radius: 6px !important;
-      font-size: 0.85rem;
-      padding: 5px 12px !important;
-      height: auto !important;
-      width: 160px;
-    }
+  .theme-icon { font-size: .95rem; }
 
-    .search-input::placeholder { color: var(--text-muted); }
-    .search-input:focus {
-      border-color: var(--accent) !important;
-      box-shadow: 0 0 0 2px var(--accent-dim) !important;
-      outline: none;
-    }
+  /* ── Filtros en navbar ── */
+  #filters {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    flex-wrap: wrap;
+  }
 
-    .btn-search {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      letter-spacing: 0.05em;
-      background: transparent;
-      border: 1px solid var(--accent);
-      color: var(--accent);
-      border-radius: 6px;
-      padding: 5px 14px;
-      cursor: pointer;
-      transition: all 0.15s;
-    }
+  .filter-label {
+    font-family: 'Space Mono', monospace;
+    font-size: .67rem;
+    text-transform: uppercase;
+    letter-spacing: .12em;
+    color: var(--accent);
+  }
 
-    .btn-search:hover {
-      background: var(--accent);
-      color: var(--bg);
-    }
+  .filter-group {
+    display: flex;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 2px;
+    transition: border-color .3s, background .3s;
+  }
 
-    /* ── Main container ───────────────────────────────── */
-    main { padding: 2rem 0; }
+  .filter-radio { display: none; }
 
-    /* ── Add-todo card ────────────────────────────────── */
-    .add-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.25rem 1.5rem;
-      margin-bottom: 1.75rem;
-    }
+  .filter-radio + label {
+    padding: 4px 11px;
+    border-radius: 4px;
+    font-size: .78rem;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    user-select: none;
+    white-space: nowrap;
+  }
 
-    .add-card label {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--accent);
-      margin-bottom: 0.3rem;
-      display: block;
-    }
+  .filter-radio:checked + label {
+    background: var(--accent);
+    color: var(--accent-btn-t);
+    font-weight: 500;
+  }
 
-    .form-control-custom {
-      background: var(--bg) !important;
-      border: 1px solid var(--border) !important;
-      color: var(--text) !important;
-      border-radius: 6px !important;
-      padding: 0.55rem 0.85rem;
-      font-family: var(--sans);
-      font-size: 0.9rem;
-      transition: border-color 0.15s, box-shadow 0.15s;
-      width: 100%;
-    }
+  .search-wrap {
+    display: flex;
+    gap: .4rem;
+  }
 
-    .form-control-custom::placeholder { color: var(--text-muted); }
-    .form-control-custom:focus {
-      outline: none;
-      border-color: var(--accent) !important;
-      box-shadow: 0 0 0 3px var(--accent-dim) !important;
-    }
+  .search-input {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 6px;
+    font-size: .82rem;
+    padding: 5px 12px;
+    width: 148px;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s, background .3s;
+    font-family: 'DM Sans', sans-serif;
+  }
 
-    .btn-add {
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      border-radius: 6px;
-      font-family: var(--mono);
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 0.05em;
-      padding: 0.55rem 1.5rem;
-      width: 100%;
-      cursor: pointer;
-      transition: all 0.15s;
-      margin-top: 1.65rem;
-    }
+  .search-input::placeholder { color: var(--text-muted); }
+  .search-input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 2px var(--accent-dim);
+  }
 
-    .btn-add:hover {
-      background: #38b2ac;
-      transform: translateY(-1px);
-    }
+  .btn-search {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 6px;
+    padding: 5px 13px;
+    font-size: .78rem;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+    font-family: 'Space Mono', monospace;
+  }
 
-    .btn-add:active { transform: translateY(0); }
+  .btn-search:hover { border-color: var(--accent); color: var(--accent); }
 
-    /* ── Alert ────────────────────────────────────────── */
-    #alert, #modal-alert {
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-family: var(--sans);
-      background: rgba(252, 129, 129, 0.12);
-      border: 1px solid var(--danger);
-      color: var(--danger);
-      padding: 0.6rem 1rem;
-    }
+  /* ════════════════════════════════════════════════════
+     MAIN
+  ════════════════════════════════════════════════════ */
+  main { padding: 1.75rem 1.25rem; max-width: 1000px; margin: 0 auto; }
 
-    /* ── Table ────────────────────────────────────────── */
-    .table-wrapper {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      overflow: hidden;
-    }
+  /* ── Alert ── */
+  .app-alert {
+    border-radius: 7px;
+    font-size: .85rem;
+    background: rgba(252,129,129,.1);
+    border: 1px solid var(--p-urgent);
+    color: var(--p-urgent);
+    padding: .55rem 1rem;
+    margin-bottom: 1rem;
+  }
 
-    #table {
-      margin: 0;
-      font-size: 0.9rem;
-    }
+  .d-none { display: none !important; }
 
-    #table thead th {
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      padding: 0.85rem 1rem;
-      white-space: nowrap;
-    }
+  /* ── Add card ── */
+  .add-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+    box-shadow: var(--card-shadow);
+    transition: background .3s, border-color .3s;
+  }
 
-    #table tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background 0.12s;
-    }
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr 1fr auto;
+    gap: .75rem;
+    align-items: end;
+  }
 
-    #table tbody tr:last-child { border-bottom: none; }
-    #table tbody tr:hover { background: var(--surface2); }
+  @media (max-width: 720px) {
+    .form-row { grid-template-columns: 1fr; }
+  }
 
-    #table tbody td {
-      padding: 0.85rem 1rem;
-      vertical-align: middle;
-      border: none;
-      color: var(--text);
-    }
+  .field label {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: .67rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--accent);
+    margin-bottom: .3rem;
+  }
 
-    .todo-title {
-      font-weight: 500;
-      max-width: 200px;
-    }
+  .field input,
+  .field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 7px;
+    padding: .52rem .85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s, background .3s;
+    appearance: none;
+  }
 
-    .todo-desc {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-    }
+  .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 2rem;
+    cursor: pointer;
+  }
 
-    .done {
-      text-decoration: line-through;
-      color: var(--text-muted) !important;
-      opacity: 0.6;
-    }
+  .field input:focus,
+  .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
 
-    .completed-row { opacity: 0.7; }
+  .field input::placeholder { color: var(--text-muted); }
 
-    /* Custom checkbox */
-    .check-input {
-      width: 18px;
-      height: 18px;
-      accent-color: var(--accent);
-      cursor: pointer;
-    }
+  .btn-add {
+    background: var(--accent-btn);
+    color: var(--accent-btn-t);
+    border: none;
+    border-radius: 7px;
+    font-family: 'Space Mono', monospace;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .05em;
+    padding: .55rem 1.4rem;
+    cursor: pointer;
+    transition: opacity .15s, transform .1s;
+    white-space: nowrap;
+    align-self: end;
+  }
 
-    .actions-cell { white-space: nowrap; }
+  .btn-add:hover  { opacity: .88; transform: translateY(-1px); }
+  .btn-add:active { transform: translateY(0); }
 
-    .btn-edit, .btn-delete {
-      border: none;
-      border-radius: 5px;
-      padding: 5px 9px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      margin-left: 4px;
-    }
+  /* ── Section title ── */
+  .section-title {
+    font-family: 'Space Mono', monospace;
+    font-size: .68rem;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--text-muted);
+    margin-bottom: .85rem;
+    margin-top: .25rem;
+  }
 
-    .btn-edit {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid rgba(79, 209, 197, 0.25);
-    }
+  /* ── Table ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--card-shadow);
+    transition: background .3s, border-color .3s;
+  }
 
-    .btn-edit:hover {
-      background: var(--accent);
-      color: var(--bg);
-    }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+  }
 
-    .btn-delete {
-      background: rgba(252, 129, 129, 0.1);
-      color: var(--danger);
-      border: 1px solid rgba(252, 129, 129, 0.25);
-    }
+  thead th {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    font-family: 'Space Mono', monospace;
+    font-size: .65rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    padding: .8rem 1rem;
+    text-align: left;
+    white-space: nowrap;
+    transition: background .3s, border-color .3s;
+  }
 
-    .btn-delete:hover {
-      background: var(--danger);
-      color: white;
-    }
+  thead th.center { text-align: center; }
 
-    /* Empty state */
-    .empty-msg {
-      text-align: center;
-      color: var(--text-muted);
-      padding: 3rem 1rem !important;
-      font-family: var(--mono);
-      font-size: 0.85rem;
-    }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    transition: background .1s;
+  }
 
-    .empty-msg span::before { content: '— '; }
-    .empty-msg span::after  { content: ' —'; }
+  tbody tr:last-child { border-bottom: none; }
+  tbody tr:hover { background: var(--surface2); }
 
-    /* ── Modal ────────────────────────────────────────── */
-    .modal-content {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-    }
+  tbody td {
+    padding: .82rem 1rem;
+    vertical-align: middle;
+    color: var(--text);
+    transition: color .3s;
+  }
 
-    .modal-header {
-      background: var(--surface2);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 1.25rem;
-    }
+  /* Priority badge */
+  .priority-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-family: 'Space Mono', monospace;
+    font-size: .65rem;
+    font-weight: 700;
+    letter-spacing: .04em;
+    white-space: nowrap;
+  }
 
-    .modal-title {
-      font-family: var(--mono);
-      font-size: 0.95rem;
-      letter-spacing: 0.05em;
-      color: var(--accent);
-    }
+  .todo-title { font-weight: 500; }
 
-    .modal-body { padding: 1.25rem; }
+  .todo-desc  { color: var(--text-muted); font-size: .83rem; }
 
-    .modal-body label {
-      font-family: var(--mono);
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 0.1em;
-      color: var(--text-muted);
-      margin-bottom: 0.3rem;
-    }
+  .done {
+    text-decoration: line-through;
+    color: var(--text-muted) !important;
+    opacity: .55;
+  }
 
-    .modal-body .form-control {
-      background: var(--bg) !important;
-      border: 1px solid var(--border) !important;
-      color: var(--text) !important;
-      border-radius: 6px;
-      font-family: var(--sans);
-      font-size: 0.9rem;
-    }
+  .completed-row { opacity: .65; }
 
-    .modal-body .form-control:focus {
-      border-color: var(--accent) !important;
-      box-shadow: 0 0 0 3px var(--accent-dim) !important;
-    }
+  .center { text-align: center; }
 
-    .modal-footer {
-      border-top: 1px solid var(--border);
-      padding: 0.85rem 1.25rem;
-      gap: 0.5rem;
-    }
+  .check-input {
+    width: 17px; height: 17px;
+    accent-color: var(--accent);
+    cursor: pointer;
+  }
 
-    .modal-footer .btn-secondary {
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text-muted);
-      border-radius: 6px;
-      font-family: var(--mono);
-      font-size: 0.8rem;
-    }
+  .actions-cell { white-space: nowrap; text-align: right; }
 
-    .modal-footer .btn-secondary:hover {
-      border-color: var(--text-muted);
-      color: var(--text);
-    }
+  .btn-edit, .btn-delete {
+    border: none;
+    border-radius: 5px;
+    padding: 4px 9px;
+    font-size: .82rem;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+    margin-left: 4px;
+  }
 
-    #modal-btn {
-      background: var(--accent);
-      color: var(--bg);
-      border: none;
-      border-radius: 6px;
-      font-family: var(--mono);
-      font-size: 0.8rem;
-      font-weight: 700;
-      padding: 0.45rem 1.2rem;
-      cursor: pointer;
-      transition: background 0.15s;
-    }
+  .btn-edit {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  }
 
-    #modal-btn:hover { background: #38b2ac; }
+  .btn-edit:hover   { background: var(--accent); color: var(--accent-btn-t); }
 
-    .modal-body .form-check-label {
-      font-size: 0.85rem;
-      font-family: var(--sans);
-      text-transform: none;
-      letter-spacing: 0;
-      color: var(--text);
-    }
+  .btn-delete {
+    background: var(--p-urgent-bg);
+    color: var(--p-urgent);
+    border: 1px solid color-mix(in srgb, var(--p-urgent) 30%, transparent);
+  }
 
-    .close {
-      color: var(--text-muted) !important;
-      opacity: 1;
-      font-size: 1.2rem;
-    }
+  .btn-delete:hover { background: var(--p-urgent); color: #fff; }
 
-    .close:hover { color: var(--text) !important; }
+  .empty-msg {
+    text-align: center;
+    padding: 3rem 1rem !important;
+    font-family: 'Space Mono', monospace;
+    font-size: .8rem;
+    color: var(--text-muted);
+  }
 
-    /* ── Section header ───────────────────────────────── */
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 0.75rem;
-      margin-bottom: 1rem;
-    }
+  /* ════════════════════════════════════════════════════
+     MODAL (custom, sin Bootstrap)
+  ════════════════════════════════════════════════════ */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: var(--modal-overlay);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    backdrop-filter: blur(2px);
+  }
 
-    .section-header h2 {
-      font-family: var(--mono);
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.15em;
-      color: var(--text-muted);
-      margin: 0;
-    }
+  .modal-overlay.is-open { display: flex; }
 
-    .section-header .count-badge {
-      background: var(--accent-dim);
-      color: var(--accent);
-      border: 1px solid rgba(79, 209, 197, 0.3);
-      border-radius: 20px;
-      padding: 1px 10px;
-      font-family: var(--mono);
-      font-size: 0.75rem;
-    }
+  .modal-box {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 480px;
+    box-shadow: var(--card-shadow);
+    transition: background .3s, border-color .3s;
+  }
+
+  .modal-header {
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 14px 14px 0 0;
+    transition: background .3s, border-color .3s;
+  }
+
+  .modal-header h5 {
+    font-family: 'Space Mono', monospace;
+    font-size: .88rem;
+    color: var(--accent);
+    letter-spacing: .04em;
+  }
+
+  .modal-close-x {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 4px;
+    transition: color .15s;
+  }
+
+  .modal-close-x:hover { color: var(--text); }
+
+  .modal-body {
+    padding: 1.3rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .modal-body .field label {
+    display: block;
+    font-family: 'Space Mono', monospace;
+    font-size: .67rem;
+    text-transform: uppercase;
+    letter-spacing: .1em;
+    color: var(--text-muted);
+    margin-bottom: .3rem;
+  }
+
+  .modal-body .field input,
+  .modal-body .field textarea,
+  .modal-body .field select {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 7px;
+    padding: .5rem .85rem;
+    font-family: 'DM Sans', sans-serif;
+    font-size: .88rem;
+    outline: none;
+    transition: border-color .15s, box-shadow .15s, background .3s;
+    appearance: none;
+    resize: vertical;
+  }
+
+  .modal-body .field select {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 2rem;
+    cursor: pointer;
+  }
+
+  .modal-body .field input:focus,
+  .modal-body .field textarea:focus,
+  .modal-body .field select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .check-row {
+    display: flex;
+    align-items: center;
+    gap: .6rem;
+    font-size: .88rem;
+    color: var(--text);
+  }
+
+  .check-row input { width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+
+  .modal-footer {
+    border-top: 1px solid var(--border);
+    padding: .9rem 1.25rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: .5rem;
+  }
+
+  .btn-cancel {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-muted);
+    border-radius: 7px;
+    font-family: 'Space Mono', monospace;
+    font-size: .75rem;
+    padding: .45rem 1rem;
+    cursor: pointer;
+    transition: border-color .15s, color .15s;
+  }
+
+  .btn-cancel:hover { border-color: var(--text-muted); color: var(--text); }
+
+  .btn-save {
+    background: var(--accent-btn);
+    color: var(--accent-btn-t);
+    border: none;
+    border-radius: 7px;
+    font-family: 'Space Mono', monospace;
+    font-size: .75rem;
+    font-weight: 700;
+    padding: .45rem 1.2rem;
+    cursor: pointer;
+    transition: opacity .15s;
+  }
+
+  .btn-save:hover { opacity: .85; }
   </style>
 </head>
 <body>
 
-<!-- ── Navbar ──────────────────────────────────────────────────── -->
-<nav class="navbar navbar-expand-lg navbar-dark">
+<!-- ── NAVBAR ─────────────────────────────────────────────────── -->
+<nav class="navbar">
   <a class="navbar-brand" href="#">JS Todo List</a>
 
-  <button
-    class="navbar-toggler"
-    type="button"
-    data-toggle="collapse"
-    data-target="#navbarContent"
-    aria-controls="navbarContent"
-    aria-expanded="false"
-    aria-label="Toggle navigation"
-  >
-    <span class="navbar-toggler-icon"></span>
-  </button>
-
-  <div class="collapse navbar-collapse" id="navbarContent">
-    <form class="form-inline ml-auto" id="filters">
-      <span class="filter-label mr-2">Filtros</span>
+  <div class="navbar-right">
+    <form id="filters">
+      <span class="filter-label">Filtrar:</span>
 
       <div class="filter-group">
-        <input type="radio" id="f-all" class="filter-radio" name="type" value="all" checked>
+        <input type="radio" id="f-all"         class="filter-radio" name="type" value="all" checked>
         <label for="f-all">Todos</label>
-
-        <input type="radio" id="f-completed" class="filter-radio" name="type" value="completed">
+        <input type="radio" id="f-completed"   class="filter-radio" name="type" value="completed">
         <label for="f-completed">Completados</label>
-
         <input type="radio" id="f-uncompleted" class="filter-radio" name="type" value="uncompleted">
         <label for="f-uncompleted">Pendientes</label>
       </div>
 
-      <input
-        class="search-input mr-2"
-        type="search"
-        name="words"
-        placeholder="Buscar…"
-        aria-label="Search"
-      />
-
-      <button class="btn-search" type="submit" id="search">
-        <i class="fa fa-search mr-1"></i> Buscar
-      </button>
+      <div class="search-wrap">
+        <input class="search-input" type="search" name="words" placeholder="Buscar…" />
+        <button class="btn-search" type="submit">Buscar</button>
+      </div>
     </form>
+
+    <button id="theme-toggle">
+      <span class="theme-icon">☀</span> Tema cálido
+    </button>
   </div>
 </nav>
 
-<!-- ── Modal (editar) ──────────────────────────────────────────── -->
-<div
-  class="modal fade"
-  id="modal"
-  tabindex="-1"
-  role="dialog"
-  aria-labelledby="modalTitle"
-  aria-hidden="true"
->
-  <div class="modal-dialog modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title" id="modalTitle">✏ Editar Tarea</h5>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Cerrar">
-          <span aria-hidden="true">&times;</span>
-        </button>
+<!-- ── MODAL (editar tarea) ───────────────────────────────────── -->
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-heading">
+  <div class="modal-box">
+    <div class="modal-header">
+      <h5 id="modal-heading">✏ Editar tarea</h5>
+      <button class="modal-close-x" id="modal-close-x" aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="app-alert d-none" id="modal-alert"></div>
+
+      <div class="field">
+        <label for="modal-title">Título</label>
+        <input id="modal-title" type="text" placeholder="Título de la tarea" />
       </div>
 
-      <div class="modal-body">
-        <div class="alert d-none" role="alert" id="modal-alert"></div>
-
-        <div class="form-group">
-          <label>Título</label>
-          <input id="modal-title" type="text" class="form-control" placeholder="Título de la tarea" />
-        </div>
-
-        <div class="form-group">
-          <label>Descripción</label>
-          <textarea class="form-control" id="modal-description" rows="3" placeholder="Descripción…"></textarea>
-        </div>
-
-        <div class="form-group form-check mt-3">
-          <input id="modal-completed" type="checkbox" class="form-check-input" />
-          <label class="form-check-label" for="modal-completed">Marcar como completada</label>
-        </div>
+      <div class="field">
+        <label for="modal-description">Descripción</label>
+        <textarea id="modal-description" rows="3" placeholder="Descripción…"></textarea>
       </div>
 
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
-        <button type="button" id="modal-btn">Guardar cambios</button>
+      <div class="field">
+        <label for="modal-priority">Prioridad</label>
+        <select id="modal-priority">
+          <option value="urgent">🔴 Urgente</option>
+          <option value="necessary" selected>🟠 Necesario</option>
+          <option value="not-urgent">🟣 No urgente</option>
+        </select>
       </div>
+
+      <div class="check-row">
+        <input id="modal-completed" type="checkbox" />
+        <label for="modal-completed">Marcar como completada</label>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-cancel" id="modal-close">Cancelar</button>
+      <button class="btn-save"   id="modal-btn">Guardar cambios</button>
     </div>
   </div>
 </div>
 
-<!-- ── Main ────────────────────────────────────────────────────── -->
+<!-- ── MAIN ───────────────────────────────────────────────────── -->
 <main>
-  <div class="container pt-2">
 
-    <!-- Alert -->
-    <div class="alert d-none mb-3" role="alert" id="alert"></div>
+  <div class="app-alert d-none" id="alert"></div>
 
-    <!-- Add todo card -->
-    <div class="add-card">
-      <div class="row align-items-end">
-        <div class="col-sm-4 mb-2 mb-sm-0">
-          <label for="title">Título</label>
-          <input
-            type="text"
-            id="title"
-            class="form-control-custom"
-            placeholder="Ej. Aprender JavaScript"
-          />
-        </div>
-        <div class="col-sm-6 mb-2 mb-sm-0">
-          <label for="description">Descripción</label>
-          <input
-            type="text"
-            id="description"
-            class="form-control-custom"
-            placeholder="Ej. Ver tutoriales de JS en YouTube"
-          />
-        </div>
-        <div class="col-sm-2">
-          <button type="button" class="btn-add" id="add">
-            <i class="fa fa-plus mr-1"></i> Agregar
-          </button>
-        </div>
+  <!-- Formulario agregar -->
+  <div class="add-card">
+    <div class="form-row">
+      <div class="field">
+        <label for="title">Título</label>
+        <input id="title" type="text" placeholder="Ej. Aprender JavaScript" />
       </div>
+      <div class="field">
+        <label for="description">Descripción</label>
+        <input id="description" type="text" placeholder="Ej. Ver tutoriales en YouTube" />
+      </div>
+      <div class="field">
+        <label for="priority">Prioridad</label>
+        <select id="priority">
+          <option value="urgent">🔴 Urgente</option>
+          <option value="necessary" selected>🟠 Necesario</option>
+          <option value="not-urgent">🟣 No urgente</option>
+        </select>
+      </div>
+      <button class="btn-add" id="add">+ Agregar</button>
     </div>
-
-    <!-- Table -->
-    <div class="section-header">
-      <h2>Tareas</h2>
-    </div>
-
-    <div class="table-wrapper">
-      <table class="table" id="table">
-        <thead>
-          <tr>
-            <th>Título</th>
-            <th>Descripción</th>
-            <th class="text-center">Completada</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- JS genera el contenido -->
-        </tbody>
-      </table>
-    </div>
-
   </div>
+
+  <!-- Tabla -->
+  <p class="section-title">Tareas</p>
+
+  <div class="table-wrap">
+    <table id="table">
+      <thead>
+        <tr>
+          <th>Prioridad</th>
+          <th>Título</th>
+          <th>Descripción</th>
+          <th class="center">✓</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
 </main>
 
-<!-- jQuery -->
-<script
-  src="https://code.jquery.com/jquery-3.5.1.slim.min.js"
-  integrity="sha256-4+XzXVhsDmqanXGHaHvgh1gMQKX40OUvDEBTu8JcmNs="
-  crossorigin="anonymous"
-></script>
-
-<!-- Bootstrap JS -->
-<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-
-<!-- App -->
 <script src="js/index.js" type="module"></script>
-
 </body>
 </html>

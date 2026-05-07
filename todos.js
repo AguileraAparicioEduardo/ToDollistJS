@@ -6,11 +6,12 @@ export function getTodos() {
   return todos;
 }
 
-export function addTodo(title, description) {
+export function addTodo(title, description, priority = 'necessary') {
   const todo = {
     id: Date.now(),
     title,
     description,
+    priority,       // 'urgent' | 'necessary' | 'not-urgent'
     completed: false,
   };
   todos.push(todo);
@@ -19,29 +20,29 @@ export function addTodo(title, description) {
 }
 
 export function deleteTodo(id) {
-  todos = todos.filter((t) => t.id !== id);
+  todos = todos.filter(t => t.id !== id);
   saveTodos(todos);
 }
 
-export function updateTodo(id, title, description, completed) {
-  todos = todos.map((t) =>
-    t.id === id ? { ...t, title, description, completed } : t
+export function updateTodo(id, title, description, completed, priority) {
+  todos = todos.map(t =>
+    t.id === id ? { ...t, title, description, completed, priority } : t
   );
   saveTodos(todos);
 }
 
 export function toggleTodo(id) {
-  todos = todos.map((t) =>
+  todos = todos.map(t =>
     t.id === id ? { ...t, completed: !t.completed } : t
   );
   saveTodos(todos);
 }
 
 export function filterTodos({ type = 'all', words = '' }) {
-  return todos.filter((t) => {
+  return todos.filter(t => {
     const matchType =
       type === 'all' ||
-      (type === 'completed' && t.completed) ||
+      (type === 'completed'   &&  t.completed) ||
       (type === 'uncompleted' && !t.completed);
     const matchWords =
       !words ||
